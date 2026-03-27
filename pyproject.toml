@@ -7,10 +7,8 @@ name = "lumi-aitta-demo-suite"
 version = "0.1.0"
 description = "Aitta-first OpenAI-compatible demos, benchmarks, and reports."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 dependencies = [
-  "openai>=1.40.0",
-  "PyYAML>=6.0.1",
 ]
 
 [project.optional-dependencies]

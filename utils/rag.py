@@ -9,7 +9,7 @@ from utils.chat import estimate_tokens_from_messages, estimate_tokens_from_text
 from utils.files import read_documents
 
 
-@dataclass(slots=True)
+@dataclass
 class Chunk:
     source: str
     chunk_id: str

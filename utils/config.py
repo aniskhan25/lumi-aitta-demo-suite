@@ -5,8 +5,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from utils.env import load_env_file
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -17,7 +15,7 @@ DEFAULT_ENV_FILES = (
 MODELS_PATH = REPO_ROOT / "config" / "models.yaml"
 
 
-@dataclass(slots=True)
+@dataclass
 class RuntimeConfig:
     model_key: str | None
     model_name: str
@@ -97,8 +95,7 @@ def load_runtime_config(
 def load_models_config(path: Path = MODELS_PATH) -> dict[str, dict[str, Any]]:
     if not path.exists():
         return {}
-    with path.open("r", encoding="utf-8") as handle:
-        payload = yaml.safe_load(handle) or {}
+    payload = parse_simple_yaml_mapping(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError("config/models.yaml must contain a mapping of model aliases.")
     return payload
@@ -113,3 +110,51 @@ def parse_bool(value: str | None) -> bool | None:
     if normalized in {"0", "false", "no", "off"}:
         return False
     return None
+
+
+def parse_simple_yaml_mapping(text: str) -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
+    current_key: str | None = None
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if not line.startswith(" "):
+            if not stripped.endswith(":"):
+                raise ValueError(f"Unsupported top-level YAML line: {raw_line}")
+            current_key = stripped[:-1].strip()
+            result[current_key] = {}
+            continue
+        if current_key is None:
+            raise ValueError("Nested YAML entry found before a top-level key.")
+        entry = stripped
+        if ":" not in entry:
+            raise ValueError(f"Unsupported nested YAML line: {raw_line}")
+        key, value = entry.split(":", 1)
+        result[current_key][key.strip()] = parse_scalar(value.strip())
+    return result
+
+
+def parse_scalar(value: str) -> Any:
+    if value == "":
+        return ""
+    if value.lower() == "true":
+        return True
+    if value.lower() == "false":
+        return False
+    if (
+        len(value) >= 2
+        and value[0] == value[-1]
+        and value[0] in {'"', "'"}
+    ):
+        return value[1:-1]
+    try:
+        return int(value)
+    except ValueError:
+        pass
+    try:
+        return float(value)
+    except ValueError:
+        pass
+    return value

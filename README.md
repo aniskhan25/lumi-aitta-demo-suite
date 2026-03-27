@@ -22,6 +22,8 @@ An Aitta-first demo and benchmark suite built around an OpenAI-compatible chat c
    pip install -r requirements.txt
    ```
 
+   The transport layer uses the standard library for HTTP, so no `openai` SDK is required.
+
 2. Copy `config/aitta.env.example` to `config/aitta.env` or export equivalent environment variables.
 
 3. Edit `config/models.yaml` if you want to add more model aliases or per-model API-key variables.
