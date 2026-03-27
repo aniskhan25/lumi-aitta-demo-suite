@@ -70,6 +70,35 @@ Run the benchmark suite wrapper:
 bash run_benchmark_suite.sh
 ```
 
+Run the benchmark matrix for throughput, delay, and concurrency:
+
+```bash
+python benchmarks/run_matrix.py
+```
+
+Summarize the matrix into a compact capacity report:
+
+```bash
+python benchmarks/summarize_matrix.py reports/example_outputs/benchmark_matrix.json
+```
+
+Recommended TinyLlama benchmark plan:
+
+- Latency baseline: `requests=20`, `concurrency=1`
+- Concurrency sweep: `1 2 4 8`
+- Token sweep: `64 128 256`
+- Keep `n=1`
+
+Example:
+
+```bash
+python benchmarks/run_matrix.py \
+  --requests 20 \
+  --baseline-concurrency 1 \
+  --concurrency-values 1 2 4 8 \
+  --max-token-values 64 128 256
+```
+
 ## Design notes
 
 - The repo uses the OpenAI-compatible endpoint directly.

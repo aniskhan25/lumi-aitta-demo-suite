@@ -6,3 +6,4 @@ cd "$ROOT_DIR"
 
 python benchmarks/benchmark_openai.py "$@"
 python benchmarks/benchmark_reasoning.py "$@"
+python benchmarks/run_matrix.py "$@"
