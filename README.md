@@ -61,6 +61,7 @@ python demos/smoke_test.py --stream
 Use discovery only if you specifically want the `aitta-client` path:
 
 ```bash
+python -m pip install aitta-client
 python demos/smoke_test.py --discovery --api-root https://api-staging-aitta.2.rahtiapp.fi
 ```
 
