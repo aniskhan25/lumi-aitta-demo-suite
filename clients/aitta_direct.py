@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import json
 import time
-import urllib.error
-import urllib.parse
-import urllib.request
 from typing import Any
 
+from openai import OpenAI
+
 from clients.base import ChatBackend, ChatResult
-from utils.chat import extract_choice_texts
+from utils.chat import extract_choice_texts, serialize_response
 
 
 class AittaDirectBackend(ChatBackend):
@@ -28,8 +26,7 @@ class AittaDirectBackend(ChatBackend):
             raise ValueError("A direct-mode base URL is required.")
         self.model_name = model_name
         self.base_url = base_url
-        self.api_key = api_key
-        self.timeout = timeout
+        self.client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout)
 
     def complete(self, messages: list[dict[str, Any]], **kwargs: Any) -> ChatResult:
         if kwargs.get("stream"):
@@ -46,8 +43,9 @@ class AittaDirectBackend(ChatBackend):
         request_kwargs.update(kwargs)
 
         started = time.perf_counter()
-        raw_response = self._post_chat_completions(request_kwargs)
+        response = self.client.chat.completions.create(**request_kwargs)
         latency_seconds = time.perf_counter() - started
+        raw_response = serialize_response(response)
         return ChatResult(
             backend_name=self.backend_name,
             model_name=request_kwargs["model"],
@@ -58,48 +56,3 @@ class AittaDirectBackend(ChatBackend):
             usage=raw_response.get("usage"),
             resolved_base_url=self.base_url,
         )
-
-    def _post_chat_completions(self, payload: dict[str, Any]) -> dict[str, Any]:
-        endpoint = self._chat_completions_url(self.base_url)
-        request = urllib.request.Request(
-            endpoint,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-            },
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                body = response.read().decode("utf-8")
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode("utf-8", errors="replace")
-            raise RuntimeError(
-                f"Aitta request failed with HTTP {exc.code}: {body}"
-            ) from exc
-        except urllib.error.URLError as exc:
-            raise RuntimeError(f"Could not reach Aitta endpoint: {exc.reason}") from exc
-
-        try:
-            payload = json.loads(body)
-        except json.JSONDecodeError as exc:
-            raise RuntimeError("Aitta returned a non-JSON response.") from exc
-        if not isinstance(payload, dict):
-            raise RuntimeError("Aitta returned an unexpected response payload.")
-        return payload
-
-    @staticmethod
-    def _chat_completions_url(base_url: str) -> str:
-        normalized = base_url.rstrip("/")
-        if normalized.endswith("/chat/completions"):
-            return normalized
-        if normalized.endswith("/v1"):
-            return normalized + "/chat/completions"
-        parsed = urllib.parse.urlparse(normalized)
-        path = parsed.path.rstrip("/")
-        if path.endswith("/v1"):
-            new_path = path + "/chat/completions"
-        else:
-            new_path = path + "/v1/chat/completions"
-        return urllib.parse.urlunparse(parsed._replace(path=new_path))

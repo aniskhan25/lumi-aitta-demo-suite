@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 
-@dataclass
+@dataclass(slots=True)
 class BenchmarkRecord:
     index: int
     success: bool

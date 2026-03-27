@@ -6,7 +6,7 @@ from typing import Any
 ChatMessage = dict[str, Any]
 
 
-@dataclass
+@dataclass(slots=True)
 class ChatResult:
     backend_name: str
     model_name: str
