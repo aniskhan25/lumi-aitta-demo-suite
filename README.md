@@ -16,15 +16,27 @@ An Aitta-first demo and benchmark suite built around an OpenAI-compatible chat c
 
 ## Setup
 
-1. Create a virtual environment and install dependencies:
+1. On LUMI, create the virtual environment through the container-backed installer:
 
    ```bash
-   pip install -r requirements.txt
+   bash scripts/install_venv.sh
    ```
 
-2. Copy `config/aitta.env.example` to `config/aitta.env` or export equivalent environment variables.
+2. Load the repo env file and activate the venv:
 
-3. Edit `config/models.yaml` if you want to add more model aliases or per-model API-key variables.
+   ```bash
+   source env/lumi-env.sh
+   export AITTA_API_KEY="replace_me"
+   source "${AITTA_VENV}/bin/activate"
+   ```
+
+   Do not commit real API keys into the repository. Keep them in your shell environment or in a separate local-only secrets file that is not tracked by git.
+
+3. Copy `config/aitta.env.example` to `config/aitta.env` or export equivalent environment variables.
+
+4. Edit `config/models.yaml` if you want to add more model aliases or per-model API-key variables.
+
+The venv installer follows the same mechanism as the Anemoi LUMI repo: source `env/lumi-env.sh`, load `lumi-aif-singularity-bindings`, and create the venv inside the configured container with `--system-site-packages`.
 
 ## Quick start
 
