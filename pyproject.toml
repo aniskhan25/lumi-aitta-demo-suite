@@ -13,11 +13,6 @@ dependencies = [
   "PyYAML>=6.0.1",
 ]
 
-[project.optional-dependencies]
-discovery = [
-  "aitta-client",
-]
-
 [tool.setuptools]
 include-package-data = true
 

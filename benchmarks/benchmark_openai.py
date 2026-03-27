@@ -35,8 +35,6 @@ def main() -> None:
         model_name=args.model,
         api_key=args.api_key,
         base_url=args.base_url,
-        use_discovery=args.discovery,
-        api_root=args.api_root,
     )
     backend = build_backend(config)
     prompt = open(args.prompt_file, "r", encoding="utf-8").read().strip()
@@ -80,7 +78,7 @@ def main() -> None:
     payload = {
         "config": {
             "model_name": config.model_name,
-            "backend_mode": "discovery" if config.use_discovery else "direct",
+            "backend_mode": "direct",
             "requests": args.requests,
             "concurrency": args.concurrency,
             "temperature": args.temperature,

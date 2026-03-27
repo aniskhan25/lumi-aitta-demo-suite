@@ -46,7 +46,7 @@ The venv installer follows the same mechanism as the Anemoi LUMI repo: source `e
 
 ## Quick start
 
-Run the smoke test against the direct OpenAI-compatible endpoint:
+Run the smoke test against the OpenAI-compatible endpoint:
 
 ```bash
 python demos/smoke_test.py
@@ -56,13 +56,6 @@ Run the same smoke test with streaming:
 
 ```bash
 python demos/smoke_test.py --stream
-```
-
-Use discovery only if you specifically want the `aitta-client` path:
-
-```bash
-python -m pip install aitta-client
-python demos/smoke_test.py --discovery --api-root https://api-staging-aitta.2.rahtiapp.fi
 ```
 
 Run the demo suite wrapper:
@@ -79,14 +72,12 @@ bash run_benchmark_suite.sh
 
 ## Design notes
 
-- The default path is the direct OpenAI-compatible endpoint.
-- Discovery via `aitta-client` is optional.
+- The repo uses the OpenAI-compatible endpoint directly.
 - Direct smoke tests can stream tokens.
-- Streaming support depends on the endpoint path you use. The direct OpenAI-compatible smoke test supports it.
+- Streaming support depends on the model endpoint. The smoke test supports it.
 - Conversation continuity is handled client-side through the `messages` payload.
 - Multi-candidate reasoning uses `n` completions instead of repeated independent requests.
 
 ## Limitations
 
-- The discovery adapter is intentionally defensive because `aitta-client` may expose slightly different method names across environments. If your local API differs, update the adapter methods in `clients/aitta_discovery.py`.
 - Token estimation in the demos uses a lightweight heuristic for budgeting, not model-specific tokenization.

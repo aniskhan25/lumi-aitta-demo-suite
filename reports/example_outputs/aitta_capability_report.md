@@ -3,7 +3,7 @@
 ## Supported Behaviors
 
 - OpenAI-compatible chat completions transport.
-- Direct URL backend selection by default, with optional discovery.
+- Direct OpenAI-compatible endpoint usage.
 - Client-managed conversation history through `messages`.
 - Multi-candidate completions through `n`.
 - Direct smoke-test streaming support.

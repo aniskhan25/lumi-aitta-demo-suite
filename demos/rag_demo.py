@@ -28,8 +28,6 @@ def main() -> None:
         model_name=args.model,
         api_key=args.api_key,
         base_url=args.base_url,
-        use_discovery=args.discovery,
-        api_root=args.api_root,
     )
     chunks = chunk_documents(args.docs_dir)
     retrieved = retrieve_chunks(chunks, args.question, top_k=args.top_k)

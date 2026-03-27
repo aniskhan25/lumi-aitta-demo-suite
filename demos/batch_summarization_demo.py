@@ -28,8 +28,6 @@ def main() -> None:
         model_name=args.model,
         api_key=args.api_key,
         base_url=args.base_url,
-        use_discovery=args.discovery,
-        api_root=args.api_root,
     )
     backend = build_backend(config)
     rows: list[dict[str, object]] = []
