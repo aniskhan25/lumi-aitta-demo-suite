@@ -1,0 +1,69 @@
+from __future__ import annotations
+
+import concurrent.futures
+import statistics
+import time
+from dataclasses import dataclass
+from typing import Any, Callable
+
+
+@dataclass(slots=True)
+class BenchmarkRecord:
+    index: int
+    success: bool
+    latency_seconds: float
+    error: str | None
+    usage: dict[str, Any] | None
+    response_texts: list[str]
+    started_at: float
+
+
+def run_concurrent(
+    *,
+    worker: Callable[[int], BenchmarkRecord],
+    requests: int,
+    concurrency: int,
+) -> list[BenchmarkRecord]:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as executor:
+        futures = [executor.submit(worker, index) for index in range(requests)]
+        return [future.result() for future in concurrent.futures.as_completed(futures)]
+
+
+def percentile(values: list[float], pct: float) -> float:
+    if not values:
+        return 0.0
+    values = sorted(values)
+    if len(values) == 1:
+        return values[0]
+    position = (len(values) - 1) * pct
+    lower = int(position)
+    upper = min(lower + 1, len(values) - 1)
+    weight = position - lower
+    return values[lower] * (1 - weight) + values[upper] * weight
+
+
+def summarize_records(records: list[BenchmarkRecord]) -> dict[str, Any]:
+    latencies = [record.latency_seconds for record in records if record.success]
+    failures = [record for record in records if not record.success]
+    completion_tokens = [
+        int(record.usage.get("completion_tokens", 0))
+        for record in records
+        if record.usage
+    ]
+    started = min((record.started_at for record in records), default=time.time())
+    finished = max((record.started_at + record.latency_seconds for record in records), default=started)
+    wall_time = finished - started
+    return {
+        "requests": len(records),
+        "successes": len(records) - len(failures),
+        "failures": len(failures),
+        "failure_rate": round(len(failures) / len(records), 4) if records else 0.0,
+        "wall_time_seconds": round(wall_time, 3),
+        "avg_latency_seconds": round(statistics.mean(latencies), 3) if latencies else 0.0,
+        "p50_latency_seconds": round(percentile(latencies, 0.50), 3),
+        "p95_latency_seconds": round(percentile(latencies, 0.95), 3),
+        "p99_latency_seconds": round(percentile(latencies, 0.99), 3),
+        "total_completion_tokens": sum(completion_tokens),
+        "avg_completion_tokens": round(statistics.mean(completion_tokens), 1) if completion_tokens else 0.0,
+        "completion_tokens_per_second": round(sum(completion_tokens) / wall_time, 3) if wall_time and completion_tokens else 0.0,
+    }

@@ -1,0 +1,4 @@
+Operations tested the batch export workflow with 500 small documents. Median runtime stayed within budget,
+but two runs produced incomplete metadata because the retry handler only covered upload failures.
+The follow-up work is to add retry coverage for metadata writes and publish a short runbook for support.
+

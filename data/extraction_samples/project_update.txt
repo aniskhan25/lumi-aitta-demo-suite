@@ -1,0 +1,6 @@
+Title: Search rollout planning
+
+We need a short rollout update for the search project. Mari should own the launch checklist.
+Please summarize the current risks, capture the action items, and track a due date of 2026-04-05.
+Main action items: validate the fallback ranking path, confirm monitoring alerts, and prepare the launch note.
+

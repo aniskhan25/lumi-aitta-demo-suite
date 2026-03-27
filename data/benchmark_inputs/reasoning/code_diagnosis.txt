@@ -1,0 +1,2 @@
+A demo script fails because it tries to stream responses from a backend that does not support streaming. What is the safest first fix?
+

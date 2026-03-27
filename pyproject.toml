@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lumi-aitta-demo-suite"
+version = "0.1.0"
+description = "Aitta-first OpenAI-compatible demos, benchmarks, and reports."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "openai>=1.40.0",
+  "PyYAML>=6.0.1",
+]
+
+[project.optional-dependencies]
+discovery = [
+  "aitta-client",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["clients*", "utils*", "demos*", "benchmarks*", "reports*"]

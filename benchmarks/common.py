@@ -1,0 +1,18 @@
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+
+def add_backend_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--env-file", default=None)
+    parser.add_argument("--model-key", default=None)
+    parser.add_argument("--mode", choices=("discovery", "direct"), default=None)
+    parser.add_argument("--model-name", default=None)
+    parser.add_argument("--api-key", default=None)
+    parser.add_argument("--base-url", default=None)

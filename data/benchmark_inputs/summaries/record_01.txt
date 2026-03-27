@@ -1,0 +1,4 @@
+The product team completed the first pass of the onboarding rewrite. The new copy reduces setup ambiguity,
+but several screenshots are outdated and the help-center links still point at the old environment.
+The next release should include screenshot refreshes, an audit of deep links, and a short migration note.
+

@@ -1,0 +1,5 @@
+Client-managed memory is necessary when the backend is stateless.
+An application can retain the most recent turns verbatim and summarize older turns into a compact note.
+Each new request rebuilds the messages payload from that retained state.
+This keeps the server simple while still enabling coherent multi-turn behavior.
+

@@ -1,0 +1,2 @@
+Given a document-only QA workflow, what is the safest behavior when the answer is not present in the retrieved context?
+

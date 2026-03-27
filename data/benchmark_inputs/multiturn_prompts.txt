@@ -1,0 +1,6 @@
+I am preparing an Aitta capability demo for a customer meeting next week.
+Please remember that the audience cares more about practical workflows than model internals.
+Add a note that streaming is not available in this Aitta path.
+Suggest two demos that show business value.
+Summarize what you still remember about my meeting goals.
+

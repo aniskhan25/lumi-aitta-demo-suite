@@ -1,0 +1,14 @@
+poro_70b_instruct:
+  model_name: LumiOpen/Llama-Poro-2-70B-Instruct
+  token_env: AITTA_PORO70B_KEY
+  use_discovery: true
+  supports_stream: false
+  notes: "Notebook-based assumptions for the primary staging demo model."
+
+poro_34b_chat:
+  model_name: LumiOpen/Poro-34B-chat
+  token_env: AITTA_PORO34B_KEY
+  use_discovery: false
+  base_url_env: AITTA_PORO34B_BASE_URL
+  supports_stream: false
+  notes: "Direct URL mode example."
