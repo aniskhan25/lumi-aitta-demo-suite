@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Iterable
 
 ChatMessage = dict[str, Any]
 
@@ -27,4 +27,7 @@ class ChatBackend:
     backend_name = "base"
 
     def complete(self, messages: list[ChatMessage], **kwargs: Any) -> ChatResult:
+        raise NotImplementedError
+
+    def stream_text(self, messages: list[ChatMessage], **kwargs: Any) -> Iterable[str]:
         raise NotImplementedError

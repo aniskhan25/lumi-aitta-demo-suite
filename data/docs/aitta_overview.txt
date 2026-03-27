@@ -1,5 +1,4 @@
 Aitta exposes model inference through an OpenAI-compatible chat completions interface.
-In the documented notebook flow, conversation history is sent explicitly through the messages field.
-The same notebook notes that response streaming is not currently supported in that path.
-It also shows parameters such as temperature, top_p, max_completion_tokens, and n for multiple completions.
-
+Conversation history is sent explicitly through the messages field.
+Direct OpenAI-compatible endpoints can use standard parameters such as temperature, top_p, max_completion_tokens, and n.
+Streaming behavior should be validated against the specific endpoint path you use.

@@ -24,12 +24,11 @@ def main() -> None:
     args = parser.parse_args()
 
     config = load_runtime_config(
-        model_key=args.model_key,
-        mode=args.mode,
+        model_name=args.model,
         api_key=args.api_key,
         base_url=args.base_url,
-        model_name=args.model_name,
-        env_file=args.env_file,
+        use_discovery=args.discovery,
+        api_root=args.api_root,
     )
     backend = build_backend(config)
     rows: list[dict[str, object]] = []

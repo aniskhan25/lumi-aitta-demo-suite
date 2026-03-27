@@ -10,16 +10,10 @@ if str(REPO_ROOT) not in sys.path:
 
 
 def add_backend_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--env-file", default=None, help="Optional env file to load before config resolution.")
-    parser.add_argument("--model-key", default=None, help="Model alias from config/models.yaml.")
-    parser.add_argument(
-        "--mode",
-        choices=("discovery", "direct"),
-        default=None,
-        help="Override the configured backend mode.",
-    )
-    parser.add_argument("--model-name", default=None, help="Explicit model name override.")
+    parser.add_argument("--discovery", action="store_true", help="Use aitta-client discovery instead of a direct base URL.")
+    parser.add_argument("--api-root", default=None, help="Aitta discovery root. Only needed with --discovery.")
     parser.add_argument("--api-key", default=None, help="Explicit API key override.")
+    parser.add_argument("--model", default=None, help="Model name override.")
     parser.add_argument("--base-url", default=None, help="Explicit direct-mode base URL override.")
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--top-p", type=float, default=0.95)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import Any, Iterable
 
 from openai import OpenAI
 
@@ -30,17 +30,9 @@ class AittaDirectBackend(ChatBackend):
 
     def complete(self, messages: list[dict[str, Any]], **kwargs: Any) -> ChatResult:
         if kwargs.get("stream"):
-            raise ValueError("Streaming is disabled for the Aitta demo path.")
+            raise ValueError("Use stream_text() for streaming responses.")
 
-        request_kwargs = {
-            "model": kwargs.pop("model", self.model_name),
-            "messages": messages,
-        }
-        for key in ("temperature", "top_p", "max_completion_tokens", "n", "response_format"):
-            value = kwargs.pop(key, None)
-            if value is not None:
-                request_kwargs[key] = value
-        request_kwargs.update(kwargs)
+        request_kwargs = self._build_request_kwargs(messages, kwargs)
 
         started = time.perf_counter()
         response = self.client.chat.completions.create(**request_kwargs)
@@ -56,3 +48,31 @@ class AittaDirectBackend(ChatBackend):
             usage=raw_response.get("usage"),
             resolved_base_url=self.base_url,
         )
+
+    def stream_text(self, messages: list[dict[str, Any]], **kwargs: Any) -> Iterable[str]:
+        request_kwargs = self._build_request_kwargs(messages, kwargs)
+        request_kwargs["stream"] = True
+        response = self.client.chat.completions.create(**request_kwargs)
+        for chunk in response:
+            payload = serialize_response(chunk)
+            for choice in payload.get("choices", []):
+                delta = choice.get("delta", {})
+                content = delta.get("content")
+                if content:
+                    yield content
+
+    def _build_request_kwargs(
+        self,
+        messages: list[dict[str, Any]],
+        kwargs: dict[str, Any],
+    ) -> dict[str, Any]:
+        request_kwargs = {
+            "model": kwargs.pop("model", self.model_name),
+            "messages": messages,
+        }
+        for key in ("temperature", "top_p", "max_completion_tokens", "n", "response_format"):
+            value = kwargs.pop(key, None)
+            if value is not None:
+                request_kwargs[key] = value
+        request_kwargs.update(kwargs)
+        return request_kwargs

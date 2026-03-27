@@ -27,29 +27,41 @@ An Aitta-first demo and benchmark suite built around an OpenAI-compatible chat c
    ```bash
    source env/lumi-env.sh
    export AITTA_API_KEY="replace_me"
+   export AITTA_BASE_URL="https://api-staging-aitta.2.rahtiapp.fi/model/LumiOpen~Poro-34B-chat/openai/v1/"
+   export AITTA_MODEL="LumiOpen/Poro-34B-chat"
    source "${AITTA_VENV}/bin/activate"
    ```
 
    Do not commit real API keys into the repository. Keep them in your shell environment or in a separate local-only secrets file that is not tracked by git.
 
-3. Copy `config/aitta.env.example` to `config/aitta.env` or export equivalent environment variables.
+3. Optionally copy `config/aitta.env.example` to `config/aitta.env` if you want a local config file instead of exporting the variables in your shell.
 
-4. Edit `config/models.yaml` if you want to add more model aliases or per-model API-key variables.
+Only three settings matter for the normal path:
+
+- `AITTA_API_KEY`
+- `AITTA_BASE_URL`
+- `AITTA_MODEL` (optional if you keep the default)
 
 The venv installer follows the same mechanism as the Anemoi LUMI repo: source `env/lumi-env.sh`, load `lumi-aif-singularity-bindings`, and create the venv inside the configured container with `--system-site-packages`.
 
 ## Quick start
 
-Run the smoke test in discovery mode:
+Run the smoke test against the direct OpenAI-compatible endpoint:
 
 ```bash
-python demos/smoke_test.py --model-key poro_70b_instruct
+python demos/smoke_test.py
 ```
 
-Run direct mode explicitly:
+Run the same smoke test with streaming:
 
 ```bash
-python demos/smoke_test.py --mode direct --base-url https://example/v1 --api-key "$AITTA_API_KEY"
+python demos/smoke_test.py --stream
+```
+
+Use discovery only if you specifically want the `aitta-client` path:
+
+```bash
+python demos/smoke_test.py --discovery --api-root https://api-staging-aitta.2.rahtiapp.fi
 ```
 
 Run the demo suite wrapper:
@@ -66,8 +78,10 @@ bash run_benchmark_suite.sh
 
 ## Design notes
 
-- Aitta discovery is treated as a first-class integration path through `clients/aitta_discovery.py`.
-- Streaming is disabled for the Aitta path by design.
+- The default path is the direct OpenAI-compatible endpoint.
+- Discovery via `aitta-client` is optional.
+- Direct smoke tests can stream tokens.
+- Streaming support depends on the endpoint path you use. The direct OpenAI-compatible smoke test supports it.
 - Conversation continuity is handled client-side through the `messages` payload.
 - Multi-candidate reasoning uses `n` completions instead of repeated independent requests.
 

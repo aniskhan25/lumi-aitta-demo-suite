@@ -18,21 +18,38 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Aitta smoke test for direct or discovery mode.")
     add_backend_args(parser)
     parser.add_argument("--prompt", default="Summarize Aitta usage in one sentence.")
+    parser.add_argument("--stream", action="store_true", help="Stream the direct endpoint response token-by-token.")
     args = parser.parse_args()
 
     config = load_runtime_config(
-        model_key=args.model_key,
-        mode=args.mode,
+        model_name=args.model,
         api_key=args.api_key,
         base_url=args.base_url,
-        model_name=args.model_name,
-        env_file=args.env_file,
+        use_discovery=args.discovery,
+        api_root=args.api_root,
     )
     backend = build_backend(config)
     messages = [
         {"role": "system", "content": "You are a concise smoke-test assistant."},
         {"role": "user", "content": args.prompt},
     ]
+    if args.stream:
+        if config.use_discovery:
+            raise ValueError("Streaming smoke test is only wired for the direct endpoint path.")
+        print(f"backend={backend.backend_name}")
+        print(f"model={config.model_name}")
+        print(f"resolved_base_url={config.base_url}")
+        print("\n--- response ---")
+        for token in backend.stream_text(
+            messages,
+            temperature=args.temperature,
+            top_p=args.top_p,
+            max_completion_tokens=args.max_completion_tokens,
+        ):
+            print(token, end="", flush=True)
+        print()
+        return
+
     result = backend.complete(
         messages,
         temperature=args.temperature,

@@ -10,9 +10,8 @@ if str(REPO_ROOT) not in sys.path:
 
 
 def add_backend_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--env-file", default=None)
-    parser.add_argument("--model-key", default=None)
-    parser.add_argument("--mode", choices=("discovery", "direct"), default=None)
-    parser.add_argument("--model-name", default=None)
+    parser.add_argument("--discovery", action="store_true")
+    parser.add_argument("--api-root", default=None)
     parser.add_argument("--api-key", default=None)
+    parser.add_argument("--model", default=None)
     parser.add_argument("--base-url", default=None)

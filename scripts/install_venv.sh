@@ -8,7 +8,7 @@ module purge
 module use /appl/local/laifs/modules
 module load lumi-aif-singularity-bindings
 
-mkdir -p "${AITTA_DATA_ROOT}" "${AITTA_OUTPUT_ROOT}" "${AITTA_REPORT_ROOT}" "$(dirname "${AITTA_VENV}")"
+mkdir -p "$(dirname "${AITTA_VENV}")"
 
 singularity exec "${CONTAINER}" bash -lc "
 set -euo pipefail
