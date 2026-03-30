@@ -1,15 +1,29 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import time
 from typing import Any, Iterable
 
 from openai import OpenAI
 
-from clients.base import ChatBackend, ChatResult
 from utils.chat import extract_choice_texts, serialize_response
 
 
-class AittaDirectBackend(ChatBackend):
+@dataclass(slots=True)
+class ChatResult:
+    backend_name: str
+    model_name: str
+    choices: list[str]
+    latency_seconds: float
+    usage: dict[str, Any] | None = None
+    resolved_base_url: str | None = None
+
+    @property
+    def primary_text(self) -> str:
+        return self.choices[0] if self.choices else ""
+
+
+class AittaDirectBackend:
     backend_name = "aitta_direct"
 
     def __init__(
@@ -41,10 +55,8 @@ class AittaDirectBackend(ChatBackend):
         return ChatResult(
             backend_name=self.backend_name,
             model_name=request_kwargs["model"],
-            messages=messages,
             choices=extract_choice_texts(raw_response),
             latency_seconds=latency_seconds,
-            raw_response=raw_response,
             usage=raw_response.get("usage"),
             resolved_base_url=self.base_url,
         )

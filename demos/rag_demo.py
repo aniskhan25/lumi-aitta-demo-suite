@@ -9,9 +9,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from demos.common import REPO_ROOT, add_backend_args
-from clients.factory import build_backend
+from clients import build_backend
 from utils.config import load_runtime_config
+from utils.cli import add_backend_args
 from utils.rag import budget_report, build_rag_messages, chunk_documents, retrieve_chunks
 
 

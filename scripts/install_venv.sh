@@ -5,8 +5,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT_DIR}/env/lumi-env.sh"
 
 module purge
-module use /appl/local/laifs/modules
-module load lumi-aif-singularity-bindings
+module use /appl/local/csc/modulefiles
+module load pytorch
 
 mkdir -p "$(dirname "${AITTA_VENV}")"
 
