@@ -101,6 +101,29 @@ python benchmarks/run_matrix.py \
   --repeats 2
 ```
 
+Validated LUMI sequence for running the matrix:
+
+```bash
+module purge
+module use /appl/local/csc/modulefiles
+module load pytorch
+
+source env/lumi-env.sh
+source "${AITTA_VENV}/bin/activate"
+
+python benchmarks/run_matrix.py \
+  --requests 20 \
+  --baseline-concurrency 1 \
+  --concurrency-values 1 2 4 8 \
+  --max-token-values 64 128 256 \
+  --repeats 2
+```
+
+Notes:
+
+- `config/aitta.env` is loaded automatically by the Python scripts.
+- Keep `AITTA_API_KEY` in `config/aitta.env` without surrounding quotes.
+
 ## Design notes
 
 - The repo uses the OpenAI-compatible endpoint directly.

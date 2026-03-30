@@ -18,6 +18,24 @@ from utils.config import load_runtime_config
 from utils.files import write_json
 
 
+def log_progress(message: str) -> None:
+    print(message, flush=True)
+
+
+def fail_fast_on_auth_errors(run: dict[str, object]) -> None:
+    summary = run["summary"]
+    if summary["successes"] > 0:
+        return
+    records = run["records"]
+    auth_errors = [
+        record["error"]
+        for record in records
+        if record["error"] and ("401" in record["error"] or "invalid_token" in record["error"])
+    ]
+    if auth_errors:
+        raise RuntimeError(auth_errors[0])
+
+
 def aggregate_run_summaries(summaries: list[dict[str, object]]) -> dict[str, object]:
     if len(summaries) == 1:
         return summaries[0]
@@ -118,6 +136,7 @@ def execute_run(
 
 def execute_repeated_run(
     *,
+    label: str,
     backend,
     prompt: str,
     requests: int,
@@ -130,6 +149,10 @@ def execute_repeated_run(
 ) -> dict[str, object]:
     runs: list[dict[str, object]] = []
     for repeat_index in range(repeats):
+        log_progress(
+            f"starting {label}: repeat={repeat_index + 1}/{repeats}, "
+            f"requests={requests}, concurrency={concurrency}, max_completion_tokens={max_completion_tokens}"
+        )
         run = execute_run(
             backend=backend,
             prompt=prompt,
@@ -139,6 +162,14 @@ def execute_repeated_run(
             top_p=top_p,
             max_completion_tokens=max_completion_tokens,
             n=n,
+        )
+        fail_fast_on_auth_errors(run)
+        summary = run["summary"]
+        log_progress(
+            f"finished {label}: repeat={repeat_index + 1}/{repeats}, "
+            f"p95={summary['p95_latency_seconds']}s, "
+            f"failures={summary['failures']}, "
+            f"over_10s={summary['slow_request_counts']['over_10s']}"
         )
         runs.append(
             {
@@ -177,8 +208,12 @@ def main() -> None:
     )
     backend = build_backend(config)
     prompt = Path(args.prompt_file).read_text(encoding="utf-8").strip()
+    log_progress(
+        f"starting benchmark matrix: model={config.model_name}, requests={args.requests}, repeats={args.repeats}"
+    )
 
     baseline = execute_repeated_run(
+        label="baseline",
         backend=backend,
         prompt=prompt,
         requests=args.requests,
@@ -193,6 +228,7 @@ def main() -> None:
     concurrency_sweep: list[dict[str, object]] = []
     for concurrency in args.concurrency_values:
         run = execute_repeated_run(
+            label=f"concurrency={concurrency}",
             backend=backend,
             prompt=prompt,
             requests=args.requests,
@@ -214,6 +250,7 @@ def main() -> None:
     token_sweep: list[dict[str, object]] = []
     for max_tokens in args.max_token_values:
         run = execute_repeated_run(
+            label=f"max_tokens={max_tokens}",
             backend=backend,
             prompt=prompt,
             requests=args.requests,
@@ -253,6 +290,7 @@ def main() -> None:
         "token_sweep": token_sweep,
     }
     write_json(args.output, payload)
+    log_progress("benchmark matrix complete")
     print(json.dumps(payload, indent=2, ensure_ascii=True))
     print(f"\nSaved to {args.output}")
 

@@ -13,7 +13,10 @@ def metric_value(summary: dict[str, object], key: str) -> float:
 
 
 def nested_metric_value(summary: dict[str, object], group_key: str, key: str) -> float:
-    value = summary[group_key][key]
+    group = summary.get(group_key, {})
+    if not isinstance(group, dict):
+        return 0.0
+    value = group.get(key, 0.0)
     if isinstance(value, dict) and "avg" in value:
         return float(value["avg"])
     return float(value)
