@@ -88,6 +88,7 @@ Recommended TinyLlama benchmark plan:
 - Concurrency sweep: `1 2 4 8`
 - Token sweep: `64 128 256`
 - Keep `n=1`
+- Use `--repeats 2` or `--repeats 3` when you want noise detection
 
 Example:
 
@@ -96,7 +97,8 @@ python benchmarks/run_matrix.py \
   --requests 20 \
   --baseline-concurrency 1 \
   --concurrency-values 1 2 4 8 \
-  --max-token-values 64 128 256
+  --max-token-values 64 128 256 \
+  --repeats 2
 ```
 
 ## Design notes

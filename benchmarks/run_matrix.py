@@ -18,6 +18,52 @@ from utils.config import load_runtime_config
 from utils.files import write_json
 
 
+def aggregate_run_summaries(summaries: list[dict[str, object]]) -> dict[str, object]:
+    if len(summaries) == 1:
+        return summaries[0]
+
+    def values(key: str) -> list[float]:
+        return [float(summary[key]) for summary in summaries]
+
+    def summarize_metric(key: str) -> dict[str, float]:
+        metric_values = values(key)
+        return {
+            "avg": round(sum(metric_values) / len(metric_values), 3),
+            "min": round(min(metric_values), 3),
+            "max": round(max(metric_values), 3),
+        }
+
+    def summarize_counts(group_key: str) -> dict[str, dict[str, float]]:
+        keys = summaries[0][group_key].keys()
+        aggregated: dict[str, dict[str, float]] = {}
+        for key in keys:
+            metric_values = [float(summary[group_key][key]) for summary in summaries]
+            aggregated[key] = {
+                "avg": round(sum(metric_values) / len(metric_values), 4),
+                "min": round(min(metric_values), 4),
+                "max": round(max(metric_values), 4),
+            }
+        return aggregated
+
+    return {
+        "requests": int(summaries[0]["requests"]),
+        "successes": summarize_metric("successes"),
+        "failures": summarize_metric("failures"),
+        "failure_rate": summarize_metric("failure_rate"),
+        "wall_time_seconds": summarize_metric("wall_time_seconds"),
+        "avg_latency_seconds": summarize_metric("avg_latency_seconds"),
+        "p50_latency_seconds": summarize_metric("p50_latency_seconds"),
+        "p95_latency_seconds": summarize_metric("p95_latency_seconds"),
+        "p99_latency_seconds": summarize_metric("p99_latency_seconds"),
+        "total_completion_tokens": summarize_metric("total_completion_tokens"),
+        "avg_completion_tokens": summarize_metric("avg_completion_tokens"),
+        "completion_tokens_per_second": summarize_metric("completion_tokens_per_second"),
+        "slow_request_counts": summarize_counts("slow_request_counts"),
+        "slow_request_rates": summarize_counts("slow_request_rates"),
+        "repeat_count": len(summaries),
+    }
+
+
 def execute_run(
     *,
     backend,
@@ -70,6 +116,42 @@ def execute_run(
     }
 
 
+def execute_repeated_run(
+    *,
+    backend,
+    prompt: str,
+    requests: int,
+    concurrency: int,
+    temperature: float,
+    top_p: float,
+    max_completion_tokens: int,
+    n: int,
+    repeats: int,
+) -> dict[str, object]:
+    runs: list[dict[str, object]] = []
+    for repeat_index in range(repeats):
+        run = execute_run(
+            backend=backend,
+            prompt=prompt,
+            requests=requests,
+            concurrency=concurrency,
+            temperature=temperature,
+            top_p=top_p,
+            max_completion_tokens=max_completion_tokens,
+            n=n,
+        )
+        runs.append(
+            {
+                "repeat": repeat_index + 1,
+                "summary": run["summary"],
+            }
+        )
+    return {
+        "summary": aggregate_run_summaries([run["summary"] for run in runs]),
+        "runs": runs,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run a benchmark matrix for latency, concurrency, and throughput.")
     add_backend_args(parser)
@@ -81,6 +163,7 @@ def main() -> None:
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--top-p", type=float, default=0.95)
     parser.add_argument("--n", type=int, default=1)
+    parser.add_argument("--repeats", type=int, default=1, help="Repeat each matrix point this many times.")
     parser.add_argument(
         "--output",
         default=str(REPO_ROOT / "reports" / "example_outputs" / "benchmark_matrix.json"),
@@ -95,7 +178,7 @@ def main() -> None:
     backend = build_backend(config)
     prompt = Path(args.prompt_file).read_text(encoding="utf-8").strip()
 
-    baseline = execute_run(
+    baseline = execute_repeated_run(
         backend=backend,
         prompt=prompt,
         requests=args.requests,
@@ -104,11 +187,12 @@ def main() -> None:
         top_p=args.top_p,
         max_completion_tokens=max(args.max_token_values),
         n=args.n,
+        repeats=args.repeats,
     )
 
     concurrency_sweep: list[dict[str, object]] = []
     for concurrency in args.concurrency_values:
-        run = execute_run(
+        run = execute_repeated_run(
             backend=backend,
             prompt=prompt,
             requests=args.requests,
@@ -117,17 +201,19 @@ def main() -> None:
             top_p=args.top_p,
             max_completion_tokens=max(args.max_token_values),
             n=args.n,
+            repeats=args.repeats,
         )
         concurrency_sweep.append(
             {
                 "concurrency": concurrency,
                 "summary": run["summary"],
+                "runs": run["runs"],
             }
         )
 
     token_sweep: list[dict[str, object]] = []
     for max_tokens in args.max_token_values:
-        run = execute_run(
+        run = execute_repeated_run(
             backend=backend,
             prompt=prompt,
             requests=args.requests,
@@ -136,11 +222,13 @@ def main() -> None:
             top_p=args.top_p,
             max_completion_tokens=max_tokens,
             n=args.n,
+            repeats=args.repeats,
         )
         token_sweep.append(
             {
                 "max_completion_tokens": max_tokens,
                 "summary": run["summary"],
+                "runs": run["runs"],
             }
         )
 
@@ -153,11 +241,13 @@ def main() -> None:
             "temperature": args.temperature,
             "top_p": args.top_p,
             "n": args.n,
+            "repeats": args.repeats,
         },
         "baseline": {
             "concurrency": args.baseline_concurrency,
             "max_completion_tokens": max(args.max_token_values),
             "summary": baseline["summary"],
+            "runs": baseline["runs"],
         },
         "concurrency_sweep": concurrency_sweep,
         "token_sweep": token_sweep,

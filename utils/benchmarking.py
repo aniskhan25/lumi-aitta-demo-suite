@@ -18,6 +18,9 @@ class BenchmarkRecord:
     started_at: float
 
 
+SLOW_LATENCY_THRESHOLDS = (3.0, 10.0, 30.0)
+
+
 def run_concurrent(
     *,
     worker: Callable[[int], BenchmarkRecord],
@@ -53,7 +56,11 @@ def summarize_records(records: list[BenchmarkRecord]) -> dict[str, Any]:
     started = min((record.started_at for record in records), default=time.time())
     finished = max((record.started_at + record.latency_seconds for record in records), default=started)
     wall_time = finished - started
-    return {
+    slow_request_counts = {
+        f"over_{int(threshold)}s": sum(1 for latency in latencies if latency > threshold)
+        for threshold in SLOW_LATENCY_THRESHOLDS
+    }
+    summary = {
         "requests": len(records),
         "successes": len(records) - len(failures),
         "failures": len(failures),
@@ -67,3 +74,9 @@ def summarize_records(records: list[BenchmarkRecord]) -> dict[str, Any]:
         "avg_completion_tokens": round(statistics.mean(completion_tokens), 1) if completion_tokens else 0.0,
         "completion_tokens_per_second": round(sum(completion_tokens) / wall_time, 3) if wall_time and completion_tokens else 0.0,
     }
+    summary["slow_request_counts"] = slow_request_counts
+    summary["slow_request_rates"] = {
+        key: round(value / len(records), 4) if records else 0.0
+        for key, value in slow_request_counts.items()
+    }
+    return summary
