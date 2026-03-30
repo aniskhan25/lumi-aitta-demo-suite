@@ -124,6 +124,23 @@ Notes:
 - `config/aitta.env` is loaded automatically by the Python scripts.
 - Keep `AITTA_API_KEY` in `config/aitta.env` without surrounding quotes.
 
+Recorded TinyLlama matrix result from this run:
+
+- baseline_avg_latency_seconds: `2.412`
+- baseline_p95_latency_seconds: `3.663`
+- baseline_over_3s_rate: `0.075`
+- baseline_over_10s_rate: `0.05`
+- baseline_over_30s_rate: `0.05`
+- stable_concurrency_at_p95_limit: `None`
+- best_token_throughput_tokens_per_second: `108.6`
+- best_token_throughput_max_completion_tokens: `256`
+
+Observed interpretation:
+
+- The endpoint works, but latency is unstable even at `concurrency=1`.
+- Interactive multi-user use is not supported by this run.
+- `concurrency=1` is the only reasonable operating assumption for TinyLlama on this path.
+
 ## Design notes
 
 - The repo uses the OpenAI-compatible endpoint directly.
