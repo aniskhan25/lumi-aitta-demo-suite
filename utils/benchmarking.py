@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import concurrent.futures
-import statistics
 import time
-from dataclasses import dataclass
+import statistics
+import concurrent.futures
+
 from typing import Any, Callable
+from dataclasses import dataclass
 
 
 @dataclass(slots=True)
@@ -56,6 +57,7 @@ def make_chat_worker(
                 max_completion_tokens=max_completion_tokens,
                 n=n,
             )
+
             return BenchmarkRecord(
                 index=index,
                 success=True,
@@ -65,6 +67,7 @@ def make_chat_worker(
                 response_texts=result.choices,
                 started_at=started_at,
             )
+        
         except Exception as exc:
             return BenchmarkRecord(
                 index=index,
@@ -82,31 +85,38 @@ def make_chat_worker(
 def percentile(values: list[float], pct: float) -> float:
     if not values:
         return 0.0
+    
     values = sorted(values)
     if len(values) == 1:
         return values[0]
+    
     position = (len(values) - 1) * pct
     lower = int(position)
     upper = min(lower + 1, len(values) - 1)
     weight = position - lower
+
     return values[lower] * (1 - weight) + values[upper] * weight
 
 
 def summarize_records(records: list[BenchmarkRecord]) -> dict[str, Any]:
     latencies = [record.latency_seconds for record in records if record.success]
     failures = [record for record in records if not record.success]
+
     completion_tokens = [
         int(record.usage.get("completion_tokens", 0))
         for record in records
         if record.usage
     ]
+
     started = min((record.started_at for record in records), default=time.time())
     finished = max((record.started_at + record.latency_seconds for record in records), default=started)
     wall_time = finished - started
+
     slow_request_counts = {
         f"over_{int(threshold)}s": sum(1 for latency in latencies if latency > threshold)
         for threshold in SLOW_LATENCY_THRESHOLDS
     }
+
     summary = {
         "requests": len(records),
         "successes": len(records) - len(failures),
@@ -121,9 +131,11 @@ def summarize_records(records: list[BenchmarkRecord]) -> dict[str, Any]:
         "avg_completion_tokens": round(statistics.mean(completion_tokens), 1) if completion_tokens else 0.0,
         "completion_tokens_per_second": round(sum(completion_tokens) / wall_time, 3) if wall_time and completion_tokens else 0.0,
     }
+
     summary["slow_request_counts"] = slow_request_counts
     summary["slow_request_rates"] = {
         key: round(value / len(records), 4) if records else 0.0
         for key, value in slow_request_counts.items()
     }
+    
     return summary

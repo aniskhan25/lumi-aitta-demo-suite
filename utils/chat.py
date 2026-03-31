@@ -11,11 +11,14 @@ def serialize_response(response: Any) -> dict[str, Any]:
             payload = method()
             if isinstance(payload, dict):
                 return payload
+    
     if isinstance(response, dict):
         return response
+    
     json_method = getattr(response, "json", None)
     if callable(json_method):
         return json.loads(json_method())
+    
     raise TypeError("Unsupported response object type for serialization.")
 
 
@@ -31,6 +34,7 @@ def extract_choice_texts(payload: dict[str, Any]) -> list[str]:
 def content_to_text(content: Any) -> str:
     if isinstance(content, str):
         return content
+    
     if isinstance(content, list):
         parts: list[str] = []
         for item in content:
@@ -43,6 +47,8 @@ def content_to_text(content: Any) -> str:
                 elif item.get("type") == "text" and "text" in item:
                     parts.append(str(item["text"]))
         return "\n".join(part for part in parts if part)
+    
     if content is None:
         return ""
+    
     return str(content)

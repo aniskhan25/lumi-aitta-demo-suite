@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-import argparse
-import json
-from pathlib import Path
 import sys
+import json
+import argparse
+
+from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -25,9 +26,7 @@ def pick_stable_concurrency(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Summarize a benchmark matrix into capacity-oriented signals."
-    )
+    parser = argparse.ArgumentParser(description="Summarize a benchmark matrix into capacity-oriented signals.")
     parser.add_argument("input", help="Path to benchmark_matrix.json")
     parser.add_argument("--interactive-p95-limit", type=float, default=3.0)
     parser.add_argument("--output", default=None)
@@ -38,10 +37,7 @@ def main() -> None:
     concurrency_rows = payload["concurrency_sweep"]
     token_rows = payload["token_sweep"]
 
-    best_stable_concurrency = pick_stable_concurrency(
-        concurrency_rows,
-        p95_limit=args.interactive_p95_limit,
-    )
+    best_stable_concurrency = pick_stable_concurrency(concurrency_rows, p95_limit=args.interactive_p95_limit)
     best_throughput_row = max(token_rows, key=lambda row: float(row["summary"]["completion_tokens_per_second"]))
 
     summary = {
@@ -111,6 +107,7 @@ def main() -> None:
         "## Concurrency Sweep",
         "",
     ]
+
     for row in summary["concurrency_sweep"]:
         markdown_lines.append(
             f"- concurrency={row['concurrency']}: "
@@ -122,6 +119,7 @@ def main() -> None:
             f"over_30s_rate={row['over_30s_rate']}, "
             f"p95_spread_seconds={row['p95_spread_seconds']}"
         )
+    
     markdown_lines.extend(["", "## Token Sweep", ""])
     for row in summary["token_sweep"]:
         markdown_lines.append(

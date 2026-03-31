@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import time
+
 from typing import Any
+from dataclasses import dataclass
 
 from openai import OpenAI
 
@@ -29,6 +30,7 @@ class AittaDirectBackend:
             raise ValueError("AITTA API key is required for direct mode.")
         if not base_url:
             raise ValueError("A direct-mode base URL is required.")
+        
         self.model_name = model_name
         self.client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout)
 
@@ -39,6 +41,7 @@ class AittaDirectBackend:
         response = self.client.chat.completions.create(**request_kwargs)
         latency_seconds = time.perf_counter() - started
         raw_response = serialize_response(response)
+
         return ChatResult(
             choices=extract_choice_texts(raw_response),
             latency_seconds=latency_seconds,
@@ -54,6 +57,7 @@ class AittaDirectBackend:
             "model": kwargs.pop("model", self.model_name),
             "messages": messages,
         }
+
         for key in (
             "temperature",
             "top_p",
@@ -63,5 +67,6 @@ class AittaDirectBackend:
             value = kwargs.pop(key, None)
             if value is not None:
                 request_kwargs[key] = value
+        
         request_kwargs.update(kwargs)
         return request_kwargs

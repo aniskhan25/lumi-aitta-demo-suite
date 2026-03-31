@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+
 from pathlib import Path
+from dataclasses import dataclass
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ENV_FILES = (
@@ -55,15 +56,20 @@ def load_runtime_config(
 def load_env_file(path: str | Path | None) -> None:
     if path is None:
         return
+    
     env_path = Path(path)
     if not env_path.exists():
         return
+    
     for line in env_path.read_text(encoding="utf-8").splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith("#") or "=" not in stripped:
             continue
+
         key, value = stripped.split("=", 1)
+        
         normalized_value = value.strip()
         if len(normalized_value) >= 2 and normalized_value[0] == normalized_value[-1] and normalized_value[0] in {'"', "'"}:
             normalized_value = normalized_value[1:-1]
+        
         os.environ.setdefault(key.strip(), normalized_value)

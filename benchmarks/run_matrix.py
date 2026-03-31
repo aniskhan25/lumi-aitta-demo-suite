@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import argparse
+import sys
 import json
+import argparse
+
 from pathlib import Path
 from dataclasses import asdict
-import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -77,6 +78,7 @@ def average_summary_values(summaries: list[dict[str, object]]) -> dict[str, obje
 def summary_spreads(summaries: list[dict[str, object]]) -> dict[str, float]:
     if len(summaries) == 1:
         return {}
+    
     return {
         "avg_latency_seconds": round(
             max(float(summary["avg_latency_seconds"]) for summary in summaries)
@@ -110,7 +112,9 @@ def execute_run(
         max_completion_tokens=max_completion_tokens,
         n=n,
     )
+
     records = run_concurrent(worker=worker, requests=requests, concurrency=concurrency)
+
     return {
         "summary": summarize_records(records),
         "records": [asdict(record) for record in records],
@@ -136,6 +140,7 @@ def execute_repeated_run(
             f"starting {label}: repeat={repeat_index + 1}/{repeats}, "
             f"requests={requests}, concurrency={concurrency}, max_completion_tokens={max_completion_tokens}"
         )
+
         run = execute_run(
             backend=backend,
             prompt=prompt,
@@ -148,6 +153,7 @@ def execute_repeated_run(
         )
         fail_fast_on_auth_errors(run)
         summary = run["summary"]
+
         log_progress(
             f"finished {label}: repeat={repeat_index + 1}/{repeats}, "
             f"p95={summary['p95_latency_seconds']}s, "
@@ -155,6 +161,7 @@ def execute_repeated_run(
             f"over_10s={summary['slow_request_counts']['over_10s']}"
         )
         run_summaries.append(run["summary"])
+
     return {
         "summary": average_summary_values(run_summaries),
         "repeat_spreads": summary_spreads(run_summaries),
@@ -222,6 +229,7 @@ def main() -> None:
             n=args.n,
             repeats=args.repeats,
         )
+
         concurrency_sweep.append(
             {
                 "concurrency": concurrency,
@@ -245,6 +253,7 @@ def main() -> None:
             n=args.n,
             repeats=args.repeats,
         )
+
         token_sweep.append(
             {
                 "max_completion_tokens": max_tokens,
@@ -275,6 +284,7 @@ def main() -> None:
         "concurrency_sweep": concurrency_sweep,
         "token_sweep": token_sweep,
     }
+
     write_json(args.output, payload)
     log_progress("benchmark matrix complete")
     print(json.dumps(payload, indent=2, ensure_ascii=True))
