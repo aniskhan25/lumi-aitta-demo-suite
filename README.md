@@ -26,7 +26,7 @@ The current recorded evaluations in this repo use `TinyLlama/TinyLlama-1.1B-Chat
 3. Set the endpoint values either manually:
 
    ```bash
-   export AITTA_API_KEY="replace_me"
+   export AITTA_API_KEY=replace_me
    export AITTA_BASE_URL="https://api-staging-aitta.2.rahtiapp.fi/model/TinyLlama~TinyLlama-1.1B-Chat-v1.0/openai/v1/"
    export AITTA_MODEL="TinyLlama/TinyLlama-1.1B-Chat-v1.0"
    ```
