@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import argparse
 import json
-
 from pathlib import Path
 from dataclasses import asdict
+import sys
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from clients.aitta_direct import AittaDirectBackend
 
@@ -12,8 +16,6 @@ from utils.cli import add_backend_args
 from utils.files import write_json
 from utils.config import load_runtime_config
 from utils.benchmarking import make_chat_worker, run_concurrent, summarize_records
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def log_progress(message: str) -> None:
