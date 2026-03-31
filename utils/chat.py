@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import re
 from typing import Any
 
 
@@ -47,7 +46,3 @@ def content_to_text(content: Any) -> str:
     if content is None:
         return ""
     return str(content)
-def normalize_answer(text: str) -> str:
-    lowered = text.lower()
-    lowered = re.sub(r"[^a-z0-9\s]", " ", lowered)
-    return re.sub(r"\s+", " ", lowered).strip()

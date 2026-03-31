@@ -30,7 +30,6 @@ class AittaDirectBackend:
         if not base_url:
             raise ValueError("A direct-mode base URL is required.")
         self.model_name = model_name
-        self.base_url = base_url
         self.client = OpenAI(api_key=api_key, base_url=base_url, timeout=timeout)
 
     def complete(self, messages: list[dict[str, Any]], **kwargs: Any) -> ChatResult:
@@ -60,7 +59,6 @@ class AittaDirectBackend:
             "top_p",
             "max_completion_tokens",
             "n",
-            "response_format",
         ):
             value = kwargs.pop(key, None)
             if value is not None:
