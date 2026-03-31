@@ -10,7 +10,7 @@ DEFAULT_ENV_FILES = (
     REPO_ROOT / ".env",
 )
 
-DEFAULT_MODEL = "LumiOpen/Poro-34B-chat"
+DEFAULT_MODEL = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
 @dataclass(slots=True)
 class RuntimeConfig:

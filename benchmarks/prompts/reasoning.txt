@@ -1,1 +1,0 @@
-Given three candidate answers to a deployment issue, choose the safest first step and explain why in two sentences.

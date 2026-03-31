@@ -1,1 +1,0 @@
-Summarize the operational caveats of an OpenAI-compatible model endpoint that does not support streaming.

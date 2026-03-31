@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$ROOT_DIR"
-
-python benchmarks/benchmark_openai.py "$@"
-python benchmarks/benchmark_reasoning.py "$@"
-python benchmarks/run_matrix.py "$@"

@@ -1,1 +1,0 @@
-Extract the title, summary, owner, and due date from a short project update note.

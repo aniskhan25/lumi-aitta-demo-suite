@@ -1,1 +1,1 @@
-"""Shared utilities for demos, benchmarks, and reports."""
+"""Shared utilities for the benchmark scripts."""

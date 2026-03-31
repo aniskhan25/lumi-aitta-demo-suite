@@ -11,7 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from clients import build_backend
+from clients.aitta_direct import AittaDirectBackend
 from utils.benchmarking import BenchmarkRecord, run_concurrent, summarize_records
 from utils.cli import add_backend_args
 from utils.config import load_runtime_config
@@ -36,8 +36,13 @@ def main() -> None:
         api_key=args.api_key,
         base_url=args.base_url,
     )
-    backend = build_backend(config)
-    prompt = open(args.prompt_file, "r", encoding="utf-8").read().strip()
+    backend = AittaDirectBackend(
+        api_key=config.api_key,
+        base_url=config.base_url,
+        model_name=config.model_name,
+        timeout=config.timeout_seconds,
+    )
+    prompt = Path(args.prompt_file).read_text(encoding="utf-8").strip()
 
     def worker(index: int) -> BenchmarkRecord:
         started_at = time.time()

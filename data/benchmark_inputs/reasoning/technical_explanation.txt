@@ -1,2 +1,0 @@
-Explain why a stateless OpenAI-compatible endpoint requires the client to resend relevant history on each turn.
-
