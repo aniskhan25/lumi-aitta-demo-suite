@@ -5,41 +5,24 @@ import json
 from pathlib import Path
 
 
-def metric_value(summary: dict[str, object], key: str) -> float:
-    value = summary[key]
-    if isinstance(value, dict) and "avg" in value:
-        return float(value["avg"])
-    return float(value)
-
-
-def nested_metric_value(summary: dict[str, object], group_key: str, key: str) -> float:
-    group = summary.get(group_key, {})
-    if not isinstance(group, dict):
-        return 0.0
-    value = group.get(key, 0.0)
-    if isinstance(value, dict) and "avg" in value:
-        return float(value["avg"])
-    return float(value)
-
-
-def pick_stable_concurrency(rows: list[dict[str, object]], *, p95_limit: float) -> int | None:
+def pick_stable_concurrency(
+    rows: list[dict[str, object]], *, p95_limit: float
+) -> int | None:
     stable: list[int] = []
     for row in rows:
         summary = row["summary"]
-        if metric_value(summary, "failure_rate") == 0.0 and metric_value(summary, "p95_latency_seconds") <= p95_limit:
+        if (
+            float(summary["failure_rate"]) == 0.0
+            and float(summary["p95_latency_seconds"]) <= p95_limit
+        ):
             stable.append(int(row["concurrency"]))
     return max(stable) if stable else None
 
 
-def repeat_spread(summary: dict[str, object], key: str) -> float:
-    value = summary.get(key)
-    if isinstance(value, dict) and {"min", "max"} <= value.keys():
-        return round(float(value["max"]) - float(value["min"]), 3)
-    return 0.0
-
-
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Summarize a benchmark matrix into capacity-oriented signals.")
+    parser = argparse.ArgumentParser(
+        description="Summarize a benchmark matrix into capacity-oriented signals."
+    )
     parser.add_argument("input", help="Path to benchmark_matrix.json")
     parser.add_argument("--interactive-p95-limit", type=float, default=3.0)
     parser.add_argument("--output", default=None)
@@ -54,56 +37,53 @@ def main() -> None:
         concurrency_rows,
         p95_limit=args.interactive_p95_limit,
     )
-    best_throughput_row = max(
-        token_rows,
-        key=lambda row: metric_value(row["summary"], "completion_tokens_per_second"),
-    )
+    best_throughput_row = max(token_rows, key=lambda row: float(row["summary"]["completion_tokens_per_second"]))
 
     summary = {
         "model_name": payload["config"]["model_name"],
         "baseline_latency": {
-            "avg_latency_seconds": metric_value(baseline, "avg_latency_seconds"),
-            "p50_latency_seconds": metric_value(baseline, "p50_latency_seconds"),
-            "p95_latency_seconds": metric_value(baseline, "p95_latency_seconds"),
-            "p99_latency_seconds": metric_value(baseline, "p99_latency_seconds"),
+            "avg_latency_seconds": float(baseline["avg_latency_seconds"]),
+            "p50_latency_seconds": float(baseline["p50_latency_seconds"]),
+            "p95_latency_seconds": float(baseline["p95_latency_seconds"]),
+            "p99_latency_seconds": float(baseline["p99_latency_seconds"]),
         },
         "slow_request_rates": {
-            "over_3s": nested_metric_value(baseline, "slow_request_rates", "over_3s"),
-            "over_10s": nested_metric_value(baseline, "slow_request_rates", "over_10s"),
-            "over_30s": nested_metric_value(baseline, "slow_request_rates", "over_30s"),
+            "over_3s": float(baseline["slow_request_rates"]["over_3s"]),
+            "over_10s": float(baseline["slow_request_rates"]["over_10s"]),
+            "over_30s": float(baseline["slow_request_rates"]["over_30s"]),
         },
         "stable_concurrency_at_p95_limit": best_stable_concurrency,
         "interactive_p95_limit_seconds": args.interactive_p95_limit,
         "repeat_variability": {
-            "baseline_p95_spread_seconds": repeat_spread(baseline, "p95_latency_seconds"),
-            "baseline_avg_latency_spread_seconds": repeat_spread(baseline, "avg_latency_seconds"),
+            "baseline_p95_spread_seconds": float(payload["baseline"].get("repeat_spreads", {}).get("p95_latency_seconds", 0.0)),
+            "baseline_avg_latency_spread_seconds": float(payload["baseline"].get("repeat_spreads", {}).get("avg_latency_seconds", 0.0)),
         },
         "best_token_throughput": {
             "max_completion_tokens": best_throughput_row["max_completion_tokens"],
-            "completion_tokens_per_second": metric_value(best_throughput_row["summary"], "completion_tokens_per_second"),
-            "avg_latency_seconds": metric_value(best_throughput_row["summary"], "avg_latency_seconds"),
+            "completion_tokens_per_second": float(best_throughput_row["summary"]["completion_tokens_per_second"]),
+            "avg_latency_seconds": float(best_throughput_row["summary"]["avg_latency_seconds"]),
         },
         "concurrency_sweep": [
             {
                 "concurrency": row["concurrency"],
-                "p95_latency_seconds": metric_value(row["summary"], "p95_latency_seconds"),
-                "failure_rate": metric_value(row["summary"], "failure_rate"),
-                "completion_tokens_per_second": metric_value(row["summary"], "completion_tokens_per_second"),
-                "over_3s_rate": nested_metric_value(row["summary"], "slow_request_rates", "over_3s"),
-                "over_10s_rate": nested_metric_value(row["summary"], "slow_request_rates", "over_10s"),
-                "over_30s_rate": nested_metric_value(row["summary"], "slow_request_rates", "over_30s"),
-                "p95_spread_seconds": repeat_spread(row["summary"], "p95_latency_seconds"),
+                "p95_latency_seconds": float(row["summary"]["p95_latency_seconds"]),
+                "failure_rate": float(row["summary"]["failure_rate"]),
+                "completion_tokens_per_second": float(row["summary"]["completion_tokens_per_second"]),
+                "over_3s_rate": float(row["summary"]["slow_request_rates"]["over_3s"]),
+                "over_10s_rate": float(row["summary"]["slow_request_rates"]["over_10s"]),
+                "over_30s_rate": float(row["summary"]["slow_request_rates"]["over_30s"]),
+                "p95_spread_seconds": float(row.get("repeat_spreads", {}).get("p95_latency_seconds", 0.0)),
             }
             for row in concurrency_rows
         ],
         "token_sweep": [
             {
                 "max_completion_tokens": row["max_completion_tokens"],
-                "avg_latency_seconds": metric_value(row["summary"], "avg_latency_seconds"),
-                "completion_tokens_per_second": metric_value(row["summary"], "completion_tokens_per_second"),
-                "avg_completion_tokens": metric_value(row["summary"], "avg_completion_tokens"),
-                "over_3s_rate": nested_metric_value(row["summary"], "slow_request_rates", "over_3s"),
-                "p95_spread_seconds": repeat_spread(row["summary"], "p95_latency_seconds"),
+                "avg_latency_seconds": float(row["summary"]["avg_latency_seconds"]),
+                "completion_tokens_per_second": float(row["summary"]["completion_tokens_per_second"]),
+                "avg_completion_tokens": float(row["summary"]["avg_completion_tokens"]),
+                "over_3s_rate": float(row["summary"]["slow_request_rates"]["over_3s"]),
+                "p95_spread_seconds": float(row.get("repeat_spreads", {}).get("p95_latency_seconds", 0.0)),
             }
             for row in token_rows
         ],

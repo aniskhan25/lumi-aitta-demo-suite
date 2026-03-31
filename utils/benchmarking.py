@@ -19,6 +19,7 @@ class BenchmarkRecord:
 
 
 SLOW_LATENCY_THRESHOLDS = (3.0, 10.0, 30.0)
+SYSTEM_MESSAGE = "Answer accurately and concisely."
 
 
 def run_concurrent(
@@ -30,6 +31,52 @@ def run_concurrent(
     with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as executor:
         futures = [executor.submit(worker, index) for index in range(requests)]
         return [future.result() for future in concurrent.futures.as_completed(futures)]
+
+
+def make_chat_worker(
+    *,
+    backend: Any,
+    prompt: str,
+    temperature: float,
+    top_p: float,
+    max_completion_tokens: int,
+    n: int,
+) -> Callable[[int], BenchmarkRecord]:
+    def worker(index: int) -> BenchmarkRecord:
+        started_at = time.time()
+        messages = [
+            {"role": "system", "content": SYSTEM_MESSAGE},
+            {"role": "user", "content": prompt},
+        ]
+        try:
+            result = backend.complete(
+                messages,
+                temperature=temperature,
+                top_p=top_p,
+                max_completion_tokens=max_completion_tokens,
+                n=n,
+            )
+            return BenchmarkRecord(
+                index=index,
+                success=True,
+                latency_seconds=result.latency_seconds,
+                error=None,
+                usage=result.usage,
+                response_texts=result.choices,
+                started_at=started_at,
+            )
+        except Exception as exc:
+            return BenchmarkRecord(
+                index=index,
+                success=False,
+                latency_seconds=time.time() - started_at,
+                error=str(exc),
+                usage=None,
+                response_texts=[],
+                started_at=started_at,
+            )
+
+    return worker
 
 
 def percentile(values: list[float], pct: float) -> float:

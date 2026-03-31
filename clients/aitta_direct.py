@@ -15,6 +15,7 @@ class ChatResult:
     latency_seconds: float
     usage: dict[str, Any] | None = None
 
+
 class AittaDirectBackend:
     def __init__(
         self,
@@ -54,7 +55,13 @@ class AittaDirectBackend:
             "model": kwargs.pop("model", self.model_name),
             "messages": messages,
         }
-        for key in ("temperature", "top_p", "max_completion_tokens", "n", "response_format"):
+        for key in (
+            "temperature",
+            "top_p",
+            "max_completion_tokens",
+            "n",
+            "response_format",
+        ):
             value = kwargs.pop(key, None)
             if value is not None:
                 request_kwargs[key] = value
