@@ -63,4 +63,7 @@ def load_env_file(path: str | Path | None) -> None:
         if not stripped or stripped.startswith("#") or "=" not in stripped:
             continue
         key, value = stripped.split("=", 1)
-        os.environ.setdefault(key.strip(), value.strip())
+        normalized_value = value.strip()
+        if len(normalized_value) >= 2 and normalized_value[0] == normalized_value[-1] and normalized_value[0] in {'"', "'"}:
+            normalized_value = normalized_value[1:-1]
+        os.environ.setdefault(key.strip(), normalized_value)
