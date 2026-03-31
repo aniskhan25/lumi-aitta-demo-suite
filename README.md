@@ -1,18 +1,14 @@
 # lumi-aitta-demo-suite
 
-An Aitta-first demo and benchmark suite built around an OpenAI-compatible chat completions interface.
+An Aitta benchmark repo built around an OpenAI-compatible chat completions interface.
 
 ## What this repo includes
 
-- `demos/smoke_test.py`: validate credentials, endpoint routing, model selection, and basic latency.
-- `demos/rag_demo.py`: local grounded document Q&A with simple lexical retrieval and token-budget reporting.
-- `demos/extraction_demo.py`: structured JSON extraction from free text samples.
-- `demos/multiturn_demo.py`: client-managed conversational memory with recent turns plus an older-turn summary.
-- `demos/reasoning_candidates_demo.py`: multi-candidate reasoning with `n` completions and simple selection strategies.
-- `demos/batch_summarization_demo.py`: folder-to-JSONL or CSV summarization.
 - `benchmarks/benchmark_openai.py`: whole-response latency and concurrency benchmark for OpenAI-compatible endpoints.
 - `benchmarks/benchmark_reasoning.py`: compare `n=1/3/5` reasoning workflows.
-- `reports/generate_summary.py`: generate a Markdown capability report from benchmark JSON and demo artifacts.
+- `benchmarks/run_matrix.py`: run a latency, concurrency, and token-budget matrix.
+- `benchmarks/summarize_matrix.py`: summarize a matrix run into a compact capacity report.
+- `reports/generate_summary.py`: generate a Markdown report from benchmark JSON files.
 
 ## Setup
 
@@ -46,22 +42,10 @@ The venv installer follows the same mechanism as the Anemoi LUMI repo: source `e
 
 ## Quick start
 
-Run the smoke test against the OpenAI-compatible endpoint:
+Run a single whole-response benchmark:
 
 ```bash
-python demos/smoke_test.py
-```
-
-Run the same smoke test with streaming:
-
-```bash
-python demos/smoke_test.py --stream
-```
-
-Run the demo suite wrapper:
-
-```bash
-bash run_demo_suite.sh
+python benchmarks/benchmark_openai.py --requests 1 --concurrency 1
 ```
 
 Run the benchmark suite wrapper:
@@ -144,11 +128,9 @@ Observed interpretation:
 ## Design notes
 
 - The repo uses the OpenAI-compatible endpoint directly.
-- Direct smoke tests can stream tokens.
-- Streaming support depends on the model endpoint. The smoke test supports it.
-- Conversation continuity is handled client-side through the `messages` payload.
-- Multi-candidate reasoning uses `n` completions instead of repeated independent requests.
+- Multi-candidate reasoning is benchmarked through `n`.
+- The matrix runner is meant for burst-style concurrency sweeps, not paced load testing.
 
 ## Limitations
 
-- Token estimation in the demos uses a lightweight heuristic for budgeting, not model-specific tokenization.
+- The current benchmarks measure whole-response latency, not token-stream cadence.

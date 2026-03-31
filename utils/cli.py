@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def add_backend_args(parser: argparse.ArgumentParser) -> None:

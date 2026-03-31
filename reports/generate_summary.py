@@ -33,12 +33,6 @@ def main() -> None:
         help="One or more benchmark JSON files.",
     )
     parser.add_argument(
-        "--demo-files",
-        nargs="*",
-        default=[],
-        help="Optional demo artifact files to reference.",
-    )
-    parser.add_argument(
         "--output",
         default="reports/example_outputs/aitta_capability_report.md",
     )
@@ -51,9 +45,7 @@ def main() -> None:
         "",
         "- OpenAI-compatible chat completions transport.",
         "- Direct OpenAI-compatible endpoint usage.",
-        "- Client-managed conversation history through `messages`.",
         "- Multi-candidate completions through `n`.",
-        "- Direct smoke-test streaming support.",
         "",
         "## Benchmarks",
         "",
@@ -63,24 +55,11 @@ def main() -> None:
 
     lines.extend(
         [
-            "## Demo Artifacts",
-            "",
-        ]
-    )
-    if args.demo_files:
-        for demo_file in args.demo_files:
-            lines.append(f"- {demo_file}")
-    else:
-        lines.append("- No demo artifact files were supplied.")
-
-    lines.extend(
-        [
             "",
             "## Caveats",
             "",
             "- Benchmark scripts currently measure whole-response latency rather than token-stream cadence.",
-            "- Memory continuity is handled client-side by rebuilding `messages` on each turn.",
-            "- Token budgeting in the demos uses heuristics and should be validated against the target model.",
+            "- Results should be interpreted as client-observed behavior under the chosen benchmark shape.",
             "",
         ]
     )

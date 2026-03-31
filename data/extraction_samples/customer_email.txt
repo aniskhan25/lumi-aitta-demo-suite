@@ -1,6 +1,0 @@
-Subject: Need revised migration plan
-
-Could you prepare a brief migration summary for next week's steering call? Joonas should own it.
-The summary should mention that the old export job still lacks retry logic and the team needs a dry run before 2026-04-12.
-Action items include drafting the timeline, confirming staffing, and documenting rollback criteria.
-
