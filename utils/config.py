@@ -12,6 +12,7 @@ DEFAULT_ENV_FILES = (
 )
 
 DEFAULT_MODEL = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+DEFAULT_API_ROOT = "https://api-staging-aitta.2.rahtiapp.fi"
 
 @dataclass(slots=True)
 class RuntimeConfig:
@@ -19,6 +20,12 @@ class RuntimeConfig:
     api_key: str
     base_url: str
     timeout_seconds: float = 120.0
+
+
+def build_model_base_url(api_root: str, model_name: str) -> str:
+    normalized_root = api_root.rstrip("/")
+    model_route = model_name.replace("/", "~")
+    return f"{normalized_root}/model/{model_route}/openai/v1/"
 
 
 def load_runtime_config(
@@ -42,7 +49,10 @@ def load_runtime_config(
 
     resolved_base_url = base_url or os.getenv("AITTA_BASE_URL", "")
     if not resolved_base_url:
-        raise ValueError("Set AITTA_BASE_URL or pass --base-url.")
+        api_root = os.getenv("AITTA_API_ROOT", DEFAULT_API_ROOT)
+        resolved_base_url = build_model_base_url(api_root, resolved_model_name)
+    if not resolved_base_url:
+        raise ValueError("Set AITTA_API_ROOT or AITTA_BASE_URL, or pass --base-url.")
 
     timeout_seconds = float(os.getenv("AITTA_REQUEST_TIMEOUT", "120"))
     return RuntimeConfig(
