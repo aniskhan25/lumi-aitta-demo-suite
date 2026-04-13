@@ -27,7 +27,7 @@ The current recorded evaluations in this repo use `TinyLlama/TinyLlama-1.1B-Chat
 
    ```bash
    export AITTA_API_KEY=replace_me
-   export AITTA_API_ROOT=https://api-staging-aitta.2.rahtiapp.fi
+   export AITTA_BASE_URL=https://api-staging-aitta.2.rahtiapp.fi/openai/v1/
    export AITTA_MODEL="TinyLlama/TinyLlama-1.1B-Chat-v1.0"
    ```
 
@@ -38,7 +38,7 @@ The current recorded evaluations in this repo use `TinyLlama/TinyLlama-1.1B-Chat
    ```
 
    `config/aitta.env` is loaded automatically by the Python scripts. Do not commit real API keys.
-   The repo builds the model-specific OpenAI-compatible endpoint from `AITTA_API_ROOT` and `AITTA_MODEL`.
+   The validated staging endpoint for this repo is `https://api-staging-aitta.2.rahtiapp.fi/openai/v1/`.
 
 ## Quick start
 
