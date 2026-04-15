@@ -67,19 +67,19 @@ python benchmarks/summarize_matrix.py reports/example_outputs/benchmark_matrix.j
 
 Recorded TinyLlama matrix result from this run:
 
-- baseline_avg_latency_seconds: `2.604`
-- baseline_p95_latency_seconds: `7.723`
-- baseline_over_3s_rate: `0.075`
-- baseline_over_10s_rate: `0.075`
-- baseline_over_30s_rate: `0.05`
-- stable_concurrency_at_p95_limit: `1`
-- baseline_p95_spread_seconds: `10.72`
-- best_token_throughput_tokens_per_second: `108.969`
+- baseline_avg_latency_seconds: `0.942`
+- baseline_p95_latency_seconds: `0.981`
+- baseline_over_3s_rate: `0.025`
+- baseline_over_10s_rate: `0.0`
+- baseline_over_30s_rate: `0.0`
+- stable_concurrency_at_p95_limit: `2`
+- baseline_p95_spread_seconds: `0.247`
+- best_token_throughput_tokens_per_second: `304.533`
 - best_token_throughput_max_completion_tokens: `256`
 
 Observed interpretation:
 
-- `concurrency=1` looks usable for single-user interactive work in this run.
-- The latency cliff still begins at `concurrency=2`, where p95 jumps to about `30.9s`.
-- Interactive multi-user use is still not supported by this run.
-- `concurrency=1` remains the only reasonable operating assumption for TinyLlama on this path.
+- `concurrency=1` and `concurrency=2` look usable for interactive work in this run.
+- The earlier long-latency cliff is gone on the validated generic OpenAI endpoint.
+- At `concurrency=4` and above, the main limit is request failures rather than slow successful responses.
+- `concurrency=2` is the highest clean operating point from this run.
